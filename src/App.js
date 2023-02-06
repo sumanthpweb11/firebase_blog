@@ -1,23 +1,67 @@
-import logo from './logo.svg';
-import './App.css';
+import "./App.css";
+import "./styles/style.scss";
+import "./styles/media-query.css";
+import Home from "./pages/Home";
+import { Routes, Route, useNavigate } from "react-router-dom";
+import { ToastContainer } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
+import Detail from "./pages/Detail";
+import AddEditBlog from "./pages/AddEditBlog";
+import About from "./pages/About";
+import NotFound from "./pages/NotFound";
+import Navigation from "./components/Navigation/Navigation";
+import { useEffect, useState } from "react";
+import Contact from "./pages/Contact";
+import Auth from "./pages/Auth";
+import { auth } from "./firebase/firebase";
+import { signOut } from "firebase/auth";
 
 function App() {
+  const [active, setActive] = useState(-1);
+  const [user, setUser] = useState(null);
+  const [navLinksActive, setNavLinksActive] = useState(false);
+
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    auth.onAuthStateChanged((authUser) => {
+      if (authUser) {
+        setUser(authUser);
+        setNavLinksActive(true);
+      } else {
+        setUser(null);
+        setNavLinksActive(false);
+        navigate("/auth");
+      }
+    });
+  }, [navLinksActive, setNavLinksActive]);
+
+  const handleLogout = () => {
+    signOut(auth).then(() => {
+      setUser(null);
+    });
+  };
   return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.js</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
+    <div className="">
+      <ToastContainer position="top-center" />
+      <Navigation
+        active={active}
+        setActive={setActive}
+        user={user}
+        handleLogout={handleLogout}
+        navLinksActive={navLinksActive}
+        setNavLinksActive={setNavLinksActive}
+      />
+      <Routes>
+        <Route path="/" element={<Home />} />
+        <Route path="/detail/:id" element={<Detail />} />
+        <Route path="/create" element={<AddEditBlog user={user} />} />
+        <Route path="/update/:id" element={<AddEditBlog />} />
+        <Route path="/about" element={<About />} />
+        <Route path="/contact" element={<Contact />} />
+        <Route path="/auth" element={<Auth setActive={setActive} />} />
+        <Route path="*" element={<NotFound />} />
+      </Routes>
     </div>
   );
 }

@@ -36,3 +36,10 @@
     transform: rotate(360deg);
   }
 }
+
+.active-class {
+  background-color: #f7f8f9;
+  background-color: yellow;
+  padding: 0.3rem;
+  transition: all 0.5s;
+}
