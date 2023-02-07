@@ -57,6 +57,17 @@ function App() {
       <Routes>
         <Route
           path="/"
+          element={
+            <Home
+              navLinksActive={navLinksActive}
+              setNavLinksActive={setNavLinksActive}
+              user={user}
+            />
+          }
+        />
+
+        <Route
+          path="/search"
           element={<Home setNavLinksActive={setNavLinksActive} user={user} />}
         />
         <Route

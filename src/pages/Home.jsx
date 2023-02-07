@@ -1,30 +1,44 @@
-import { Box, Center, Divider, Flex, Text } from "@chakra-ui/react";
+import { Box, Button, Center, Divider, Flex, Text } from "@chakra-ui/react";
 import { async } from "@firebase/util";
 import {
   collection,
   deleteDoc,
   doc,
   getDocs,
+  limit,
   onSnapshot,
+  orderBy,
   query,
+  startAfter,
   where,
 } from "firebase/firestore";
+import { get, isEmpty, isNull } from "lodash";
 import React, { useEffect, useState } from "react";
+import { useLocation } from "react-router-dom";
 import { toast } from "react-toastify";
 import BlogList from "../components/BlogList";
-import BlogSection from "../components/BlogSection";
 import MostPopular from "../components/MostPopular";
+import Search from "../components/Search";
 import SpinnerComponent from "../components/SpinnerComponent";
 import Tags from "../components/Tags";
 import { db } from "../firebase/firebase";
 
-const Home = ({ setNavLinksActive, user }) => {
+function useQuery() {
+  return new URLSearchParams(useLocation().search);
+}
+
+const Home = ({ navLinksActive, setNavLinksActive, user }) => {
   const [loading, setLoading] = useState(true);
-  const [snapShot, setSnapshot] = useState(null);
   const [blogs, setBlogs] = useState([]);
   const [allTags, setAllTags] = useState([]);
-
+  const [search, setSearch] = useState("");
   const [trending, setTrending] = useState([]);
+  const [lastVisible, setLastVisible] = useState(null);
+  const [hide, setHide] = useState(false);
+  const location = useLocation();
+
+  const queryString = useQuery();
+  const searchQuery = queryString.get("searchQuery");
 
   const getTrendingBlogs = async () => {
     const blogRef = collection(db, "blogs");
@@ -39,6 +53,7 @@ const Home = ({ setNavLinksActive, user }) => {
 
   useEffect(() => {
     getTrendingBlogs();
+    setSearch("");
     const myBlogs = collection(db, "blogs");
 
     const unSub = onSnapshot(
@@ -53,7 +68,7 @@ const Home = ({ setNavLinksActive, user }) => {
 
         const uniqueTag = [...new Set(tags)];
         setAllTags(uniqueTag);
-        setBlogs(list);
+        // setBlogs(list);
         setLoading(false);
         setNavLinksActive(true);
       },
@@ -68,7 +83,62 @@ const Home = ({ setNavLinksActive, user }) => {
       unSub();
       getTrendingBlogs();
     };
-  }, [setNavLinksActive]);
+  }, [setNavLinksActive, navLinksActive]);
+
+  //  FETCH LOAD MORE
+
+  const getBlogs = async () => {
+    const blogRef = collection(db, "blogs");
+
+    // Load more feature
+    const firstFour = query(blogRef, orderBy("title"), limit(4));
+
+    const docSnapshot = await getDocs(firstFour);
+
+    setBlogs(docSnapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() })));
+
+    // get last document in array
+    setLastVisible(docSnapshot.docs[docSnapshot.docs.length - 1]);
+  };
+
+  useEffect(() => {
+    getBlogs();
+    setHide(false);
+  }, [navLinksActive]);
+
+  const updateState = (docSnapshot) => {
+    // check if collection is empty so that we can hide
+    // load more button and display message no more blogs
+    const isCollectionEmpty = docSnapshot.size === 0;
+    if (!isCollectionEmpty) {
+      const blogsData = docSnapshot.docs.map((doc) => ({
+        id: doc.id,
+        ...doc.data(),
+      }));
+      setBlogs((blogs) => [...blogs, ...blogsData]);
+      setLastVisible(docSnapshot.docs[docSnapshot.docs.length - 1]);
+    } else {
+      toast.info("No more Blogs to Display");
+      setHide(true);
+    }
+  };
+
+  const fetchMore = async () => {
+    setLoading(true);
+    const blogRef = collection(db, "blogs");
+
+    // starAfter defines our entry point of query
+    const nextFour = query(
+      blogRef,
+      orderBy("title"),
+      limit(4),
+      startAfter(lastVisible)
+    );
+
+    const docSnapshot = await getDocs(nextFour);
+    updateState(docSnapshot);
+    setLoading(false);
+  };
 
   // useEffect(() => {
   //   const getBlogList = async () => {
@@ -95,6 +165,37 @@ const Home = ({ setNavLinksActive, user }) => {
 
   console.log("blogs", blogs);
 
+  // Search
+  useEffect(() => {
+    if (!isNull(searchQuery)) {
+      searchBlogs();
+    }
+  }, [searchQuery]);
+
+  const searchBlogs = async () => {
+    const blogRef = collection(db, "blogs");
+    const searchTitleQuery = query(blogRef, where("title", "==", searchQuery));
+    const searchTagQuery = query(
+      blogRef,
+      where("tags", "array-contains", searchQuery)
+    );
+    const titleSnapshot = await getDocs(searchTitleQuery);
+    const tagSnapshot = await getDocs(searchTagQuery);
+    let searchTitleBlogs = [];
+    let searchTagBlogs = [];
+    titleSnapshot.forEach((doc) => {
+      searchTitleBlogs.push({ id: doc.id, ...doc.data() });
+    });
+
+    tagSnapshot.forEach((doc) => {
+      searchTagBlogs.push({ id: doc.id, ...doc.data() });
+    });
+    const combinedSearchBlogs = searchTitleBlogs.concat(searchTagBlogs);
+    setBlogs(combinedSearchBlogs);
+    setHide(true);
+    setNavLinksActive(false);
+  };
+
   const handleDelete = async (id) => {
     if (window.confirm("Are you sure you want to delete this Blog?")) {
       try {
@@ -106,6 +207,16 @@ const Home = ({ setNavLinksActive, user }) => {
         console.log(error);
       }
     }
+  };
+
+  const handleChange = (e) => {
+    const { value } = e.target;
+    if (isEmpty(value)) {
+      getBlogs();
+      setHide(false);
+    }
+
+    setSearch(value);
   };
   return (
     <div className="container-fluid pb-4 pt-4 padding relative">
@@ -122,11 +233,36 @@ const Home = ({ setNavLinksActive, user }) => {
       <div className="container padding ">
         <div className="row mx-0 ">
           <div className="col-md-8">
-            {/* <BlogSection blogs={blogs} /> */}
             <BlogList blogs={blogs} user={user} handleDelete={handleDelete} />
+            <Center>
+              {!hide && <Button onClick={fetchMore}>Load More</Button>}
+            </Center>
+            {blogs.length === 0 && location.pathname !== "/" && (
+              <>
+                <Box
+                  fontSize={"3xl"}
+                  fontWeight="bold"
+                  marginTop={"1rem"}
+                  display="flex"
+                  justifyContent={"center"}
+                  alignItems="center"
+                >
+                  <Center>
+                    <Box>
+                      <Text>No Blogs Found With This Search </Text>
+                      <Text textAlign={"center"} color={"orange.500"}>
+                        {searchQuery}
+                      </Text>
+                    </Box>
+                  </Center>
+                </Box>
+              </>
+            )}
           </div>
 
           <div className="col-md-4 ">
+            <Search search={search} handleChange={handleChange} />
+
             <Tags allTags={allTags} />
             <Divider marginTop={"1rem"} />
             <MostPopular blogs={trending} />

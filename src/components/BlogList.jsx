@@ -26,13 +26,14 @@ const BlogList = ({ blogs, user, handleDelete }) => {
             fontSize={"3xl"}
             fontWeight={"bold"}
             color={"blackAlpha.900"}
-            marginBottom={"1rem"}
-            paddingY="1rem"
+            // marginBottom={"1rem"}
+            // paddingY="1rem"
           >
             Blogs
           </Text>
         </Center>
       </Box>
+      <Divider marginTop={"1rem"} />
       {blogs?.map((item) => {
         return (
           <Center key={item.id} py={6}>
