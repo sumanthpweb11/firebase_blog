@@ -15,6 +15,7 @@ import Contact from "./pages/Contact";
 import Auth from "./pages/Auth";
 import { auth } from "./firebase/firebase";
 import { signOut } from "firebase/auth";
+import { Divider } from "@chakra-ui/react";
 
 function App() {
   const [active, setActive] = useState(-1);
@@ -31,7 +32,7 @@ function App() {
       } else {
         setUser(null);
         setNavLinksActive(false);
-        navigate("/auth");
+        // navigate("/auth");
       }
     });
   }, [navLinksActive, setNavLinksActive]);
@@ -52,14 +53,24 @@ function App() {
         navLinksActive={navLinksActive}
         setNavLinksActive={setNavLinksActive}
       />
+
       <Routes>
-        <Route path="/" element={<Home />} />
-        <Route path="/detail/:id" element={<Detail />} />
+        <Route
+          path="/"
+          element={<Home setNavLinksActive={setNavLinksActive} user={user} />}
+        />
+        <Route
+          path="/detail/:id"
+          element={<Detail setNavLinksActive={setNavLinksActive} />}
+        />
         <Route path="/create" element={<AddEditBlog user={user} />} />
-        <Route path="/update/:id" element={<AddEditBlog />} />
+        <Route path="/update/:id" element={<AddEditBlog user={user} />} />
         <Route path="/about" element={<About />} />
         <Route path="/contact" element={<Contact />} />
-        <Route path="/auth" element={<Auth setActive={setActive} />} />
+        <Route
+          path="/auth"
+          element={<Auth setActive={setActive} setUser={setUser} />}
+        />
         <Route path="*" element={<NotFound />} />
       </Routes>
     </div>

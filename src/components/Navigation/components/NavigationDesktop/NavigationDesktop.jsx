@@ -16,10 +16,12 @@ const NavigationDesktop = ({
   // console.log("name", user?.displayName);
   return (
     <Box
-      color="blue.600"
+      color="blackAlpha.900"
+      fontWeight={"semi-bold"}
       paddingY="2rem"
       backgroundColor="white"
       display={{ base: "none", md: "block" }}
+      borderBottom="1px solid black"
     >
       <Box maxWidth="1280px" margin="0 auto">
         <Flex alignItems="center" justifyContent="space-between">

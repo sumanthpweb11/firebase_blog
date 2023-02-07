@@ -4,8 +4,16 @@ import "@pathofdev/react-tag-input/build/index.css";
 import { Box } from "@chakra-ui/react";
 import { getDownloadURL, ref, uploadBytesResumable } from "firebase/storage";
 import { db, storage } from "../firebase/firebase";
-import { addDoc, collection, serverTimestamp } from "firebase/firestore";
-import { useNavigate } from "react-router-dom";
+import {
+  addDoc,
+  collection,
+  doc,
+  getDoc,
+  serverTimestamp,
+  updateDoc,
+} from "firebase/firestore";
+import { useNavigate, useParams } from "react-router-dom";
+import { toast } from "react-toastify";
 
 const initialState = {
   title: "",
@@ -29,6 +37,7 @@ const AddEditBlog = ({ user }) => {
   const [progress, setProgress] = useState(null);
 
   const navigate = useNavigate();
+  const { id } = useParams();
 
   const { title, tags, trending, category, description } = form;
 
@@ -75,6 +84,7 @@ const AddEditBlog = ({ user }) => {
         },
         () => {
           getDownloadURL(uploadTask.snapshot.ref).then((downnloadUrl) => {
+            toast.info("Image upload complete");
             setForm((prev) => ({ ...prev, imgUrl: downnloadUrl }));
           });
         }
@@ -84,19 +94,51 @@ const AddEditBlog = ({ user }) => {
     file && uploadFile();
   }, [file]);
 
+  useEffect(() => {
+    const getBlogDetailForUpdate = async () => {
+      const docRef = doc(db, "blogs", id);
+
+      const snapshot = await getDoc(docRef);
+
+      if (snapshot.exists()) {
+        setForm({ ...snapshot.data() });
+        // setNavLinksActive(false);
+      }
+    };
+
+    id && getBlogDetailForUpdate();
+  }, [id]);
+
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (category && tags && title && file && description && trending) {
-      try {
-        await addDoc(collection(db, "blogs"), {
-          ...form,
-          // timeStamp: serverTimestamp(),
-          author: user.displayName,
-          userId: user.uid,
-        });
-      } catch (err) {
-        console.log(err);
+    if (category && tags && title && description && trending) {
+      if (!id) {
+        try {
+          await addDoc(collection(db, "blogs"), {
+            ...form,
+            // timeStamp: serverTimestamp(),
+            author: user.displayName,
+            userId: user.uid,
+          });
+          toast.success("Blog created Successfully");
+        } catch (err) {
+          console.log(err);
+        }
+      } else {
+        try {
+          await updateDoc(doc(db, "blogs", id), {
+            ...form,
+            // timeStamp: serverTimestamp(),
+            author: user.displayName,
+            userId: user.uid,
+          });
+          toast.success("Blog updated Successfully");
+        } catch (err) {
+          console.log(err);
+        }
       }
+    } else {
+      return toast.error("Fields cannot be empty");
     }
 
     navigate("/");
@@ -106,7 +148,9 @@ const AddEditBlog = ({ user }) => {
     <div className="container-fluid mb-4">
       <div className="container">
         <div className="col-12">
-          <div className="text-center heading py-2">Create Blog</div>
+          <div className="text-center heading py-2">
+            {id ? "Update Blog" : "Create Blog"}
+          </div>
         </div>
 
         <div className="row h-100 justify-content-center align-items-center">
@@ -205,7 +249,7 @@ const AddEditBlog = ({ user }) => {
                   type="submit"
                   disabled={progress !== null && progress < 100}
                 >
-                  Submit
+                  {id ? "Update" : "Submit"}
                 </button>
               </div>
             </form>
