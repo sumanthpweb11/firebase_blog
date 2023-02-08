@@ -21,6 +21,8 @@ const initialState = {
   trending: "no",
   category: "",
   description: "",
+  comments: [],
+  likes: [],
 };
 const categoryOption = [
   "Fashion",

@@ -16,6 +16,9 @@ import Auth from "./pages/Auth";
 import { auth } from "./firebase/firebase";
 import { signOut } from "firebase/auth";
 import { Divider } from "@chakra-ui/react";
+import TagBlog from "./components/TagBlog";
+import CategoryBlogs from "./pages/CategoryBlogs";
+import ScrollToTop from "./components/ScrollToTop";
 
 function App() {
   const [active, setActive] = useState(-1);
@@ -53,6 +56,7 @@ function App() {
         navLinksActive={navLinksActive}
         setNavLinksActive={setNavLinksActive}
       />
+      <ScrollToTop />
 
       <Routes>
         <Route
@@ -72,10 +76,12 @@ function App() {
         />
         <Route
           path="/detail/:id"
-          element={<Detail setNavLinksActive={setNavLinksActive} />}
+          element={<Detail user={user} setNavLinksActive={setNavLinksActive} />}
         />
         <Route path="/create" element={<AddEditBlog user={user} />} />
         <Route path="/update/:id" element={<AddEditBlog user={user} />} />
+        <Route path="/tag/:tag" element={<TagBlog />} />
+        <Route path="/category/:category" element={<CategoryBlogs />} />
         <Route path="/about" element={<About />} />
         <Route path="/contact" element={<Contact />} />
         <Route

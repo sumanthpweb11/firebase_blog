@@ -1,5 +1,5 @@
 import { Box, Button, Center, Divider, Flex, Text } from "@chakra-ui/react";
-import { async } from "@firebase/util";
+
 import {
   collection,
   deleteDoc,
@@ -12,11 +12,12 @@ import {
   startAfter,
   where,
 } from "firebase/firestore";
-import { get, isEmpty, isNull } from "lodash";
+import { isEmpty, isNull } from "lodash";
 import React, { useEffect, useState } from "react";
 import { useLocation } from "react-router-dom";
 import { toast } from "react-toastify";
 import BlogList from "../components/BlogList";
+import Category from "../components/Category";
 import MostPopular from "../components/MostPopular";
 import Search from "../components/Search";
 import SpinnerComponent from "../components/SpinnerComponent";
@@ -34,6 +35,7 @@ const Home = ({ navLinksActive, setNavLinksActive, user }) => {
   const [search, setSearch] = useState("");
   const [trending, setTrending] = useState([]);
   const [lastVisible, setLastVisible] = useState(null);
+  const [totalBlogs, setTotalBlogs] = useState([]);
   const [hide, setHide] = useState(false);
   const location = useLocation();
 
@@ -42,7 +44,7 @@ const Home = ({ navLinksActive, setNavLinksActive, user }) => {
 
   const getTrendingBlogs = async () => {
     const blogRef = collection(db, "blogs");
-    const trendQuery = query(blogRef, where("trending", "==", "yes"));
+    const trendQuery = query(blogRef, where("likes", "!=", []));
     const querySnapshot = await getDocs(trendQuery);
     let trendBlogs = [];
     querySnapshot.forEach((doc) => {
@@ -68,6 +70,7 @@ const Home = ({ navLinksActive, setNavLinksActive, user }) => {
 
         const uniqueTag = [...new Set(tags)];
         setAllTags(uniqueTag);
+        setTotalBlogs(list);
         // setBlogs(list);
         setLoading(false);
         setNavLinksActive(true);
@@ -218,6 +221,29 @@ const Home = ({ navLinksActive, setNavLinksActive, user }) => {
 
     setSearch(value);
   };
+
+  // Category Count
+  //totalBlogs is an array of objects
+  const counts = totalBlogs?.reduce((prevValue, currentVal) => {
+    let name = currentVal.category;
+    if (!prevValue.hasOwnProperty(name)) {
+      prevValue[name] = 0;
+    }
+    prevValue[name]++;
+    delete prevValue["undefined"];
+    return prevValue;
+  }, {});
+
+  const categoryCount = Object.keys(counts).map((k) => {
+    return {
+      category: k,
+      count: counts[k],
+    };
+  });
+
+  // console.log("categorycount", categoryCount);
+  // console.log("counts", counts);
+  // console.log("totalblogs", totalBlogs);
   return (
     <div className="container-fluid pb-4 pt-4 padding relative">
       {loading && (
@@ -233,7 +259,31 @@ const Home = ({ navLinksActive, setNavLinksActive, user }) => {
       <div className="container padding ">
         <div className="row mx-0 ">
           <div className="col-md-8">
-            <BlogList blogs={blogs} user={user} handleDelete={handleDelete} />
+            <Box>
+              <Center>
+                <Text
+                  fontSize={"3xl"}
+                  fontWeight={"bold"}
+                  color={"blackAlpha.900"}
+                  // marginBottom={"1rem"}
+                  // paddingY="1rem"
+                >
+                  Blogs
+                </Text>
+              </Center>
+            </Box>
+            <Divider marginTop={"1rem"} />
+            {blogs?.map((blog) => {
+              return (
+                <BlogList
+                  key={blog.id}
+                  user={user}
+                  handleDelete={handleDelete}
+                  {...blog}
+                />
+              );
+            })}
+
             <Center>
               {!hide && <Button onClick={fetchMore}>Load More</Button>}
             </Center>
@@ -266,6 +316,7 @@ const Home = ({ navLinksActive, setNavLinksActive, user }) => {
             <Tags allTags={allTags} />
             <Divider marginTop={"1rem"} />
             <MostPopular blogs={trending} />
+            <Category categoryCount={categoryCount} />
           </div>
         </div>
       </div>

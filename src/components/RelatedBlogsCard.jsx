@@ -1,8 +1,12 @@
+import React from "react";
+import { Link } from "react-router-dom";
+import { excerpt } from "../utility";
+import { FaRegCommentDots } from "react-icons/fa";
+
 import {
   Badge,
   Box,
   Button,
-  Center,
   Divider,
   Flex,
   Heading,
@@ -11,26 +15,16 @@ import {
   Text,
 } from "@chakra-ui/react";
 
-import { Link } from "react-router-dom";
-
 import { BsTrash2Fill } from "react-icons/bs";
 import { AiOutlineEdit } from "react-icons/ai";
-import { excerpt } from "../utility";
-import { FaRegCommentDots } from "react-icons/fa";
 
-const BlogList = ({
-  id,
+const RelatedBlogsCard = ({
   title,
   description,
-  category,
-  author,
   imgUrl,
-  user,
-  tags,
-  userId,
+  id,
   likes,
   comments,
-  handleDelete,
 }) => {
   return (
     <Box>
@@ -39,17 +33,18 @@ const BlogList = ({
           // backgroundColor={"red.600"}
           borderWidth="1px"
           borderRadius="lg"
-          minWidth={{ sm: "500px" }}
-          maxWidth={{ sm: "600px" }}
-          minHeight={{ sm: "476px" }}
-          direction={{ base: "column", md: "row" }}
+          minWidth={{ sm: "200px" }}
+          maxWidth={{ sm: "300px" }}
+          minHeight={{ sm: "200px" }}
+          maxHeight={{ sm: "300px" }}
+          direction={{ base: "column" }}
           // bg={useColorModeValue("white", "gray.900")}
           boxShadow={"2xl"}
           padding={4}
         >
-          <Flex flex={1} bg="blue.200">
+          <Box width={"100%"} height="100px" bg="blue.200">
             <Image objectFit="cover" boxSize="100%" src={imgUrl} />
-          </Flex>
+          </Box>
           <Stack
             flex={1}
             flexDirection="column"
@@ -58,20 +53,9 @@ const BlogList = ({
             p={1}
             pt={2}
           >
-            <Heading fontSize={"2xl"} fontFamily={"body"}>
+            <Heading fontSize={{ base: "lg" }} fontFamily={"body"}>
               {title}
             </Heading>
-            <Text fontWeight={600} color={"gray.500"} size="sm" mb={4}>
-              {author}
-            </Text>
-            <Badge
-              backgroundColor={"green.200"}
-              textAlign={"center"}
-              // color={useColorModeValue("gray.700", "gray.400")}
-              px={3}
-            >
-              {category}
-            </Badge>
             <Badge paddingX={"1rem"} paddingY="0.5rem">
               <Flex gap="0.5rem" alignItems={"center"}>
                 {likes?.length}
@@ -87,21 +71,6 @@ const BlogList = ({
               )}
             </Badge>
 
-            <Stack align={"center"} justify={"center"} direction={"row"} mt={6}>
-              {tags?.map((tag, index) => {
-                return (
-                  <Text
-                    key={index}
-                    px={2}
-                    py={1}
-                    // bg={useColorModeValue("gray.50", "gray.800")}
-                    fontWeight={"400"}
-                  >
-                    <span>#</span> {tag}
-                  </Text>
-                );
-              })}
-            </Stack>
             <Divider color={"green.500"} />
             <Text
               rounded={"0.5rem"}
@@ -130,26 +99,6 @@ const BlogList = ({
                 <Link to={`/detail/${id}`}>Read More</Link>
               </Button>
             </Stack>
-
-            {user && user.uid === userId && (
-              <Box>
-                <Flex gap="1rem" alignItems="center" justifyContent={"center"}>
-                  <Box _hover={{ color: "red" }}>
-                    <BsTrash2Fill
-                      onClick={() => handleDelete(id)}
-                      size={20}
-                      style={{ cursor: "pointer" }}
-                    />
-                  </Box>
-
-                  <Box _hover={{ color: "yellow.500" }}>
-                    <Link to={`/update/${id}`}>
-                      <AiOutlineEdit size={20} style={{ cursor: "pointer" }} />
-                    </Link>
-                  </Box>
-                </Flex>
-              </Box>
-            )}
           </Stack>
         </Stack>
       </Flex>
@@ -157,4 +106,4 @@ const BlogList = ({
   );
 };
 
-export default BlogList;
+export default RelatedBlogsCard;

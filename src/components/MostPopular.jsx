@@ -1,26 +1,16 @@
 import React from "react";
 import { useNavigate } from "react-router-dom";
 import {
-  Badge,
   Box,
-  Button,
   Center,
-  Divider,
   Flex,
   Heading,
   Image,
   Stack,
   Text,
-  useColorModeValue,
 } from "@chakra-ui/react";
 
-import { Link } from "react-router-dom";
-
-import { BsTrash2Fill } from "react-icons/bs";
-import { AiOutlineEdit } from "react-icons/ai";
-import { excerpt } from "../utility";
-
-const MostPopular = ({ blogs }) => {
+const MostPopular = ({ blogs, title }) => {
   const navigate = useNavigate();
   return (
     <Box>
