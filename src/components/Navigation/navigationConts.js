@@ -1,6 +1,6 @@
 export const navigationsLinks = [
   { title: "About", link: "/about" },
-  { title: "Contact", link: "/contact" },
+  { title: "My Blogs", link: "/blogs" },
 ];
 
 export const navigationLinkCreate = [, , { title: "Create", link: "/create" }];

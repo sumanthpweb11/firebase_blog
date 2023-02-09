@@ -159,3 +159,11 @@
 ::-webkit-scrollbar-thumb:hover {
   background: #555;
 }
+
+.pag-btn{
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  background-color: #f0ecec;
+  padding: 0.5rem 1rem;
+}

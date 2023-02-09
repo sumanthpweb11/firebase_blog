@@ -19,6 +19,7 @@ import { Divider } from "@chakra-ui/react";
 import TagBlog from "./components/TagBlog";
 import CategoryBlogs from "./pages/CategoryBlogs";
 import ScrollToTop from "./components/ScrollToTop";
+import Blogs from "./pages/Blogs";
 
 function App() {
   const [active, setActive] = useState(-1);
@@ -83,6 +84,7 @@ function App() {
         <Route path="/tag/:tag" element={<TagBlog />} />
         <Route path="/category/:category" element={<CategoryBlogs />} />
         <Route path="/about" element={<About />} />
+        <Route path="/blogs" element={<Blogs user={user} />} />
         <Route path="/contact" element={<Contact />} />
         <Route
           path="/auth"
