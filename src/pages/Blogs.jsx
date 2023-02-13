@@ -6,7 +6,6 @@ import {
   getDocs,
   limit,
   limitToLast,
-  orderBy,
   query,
   startAfter,
   where,
